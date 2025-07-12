@@ -35,16 +35,6 @@
             </div>
         </div>
     </div>
-    <div class="modal-overlay-custom" id="confirm-delete-modal">
-        <div class="modal-content-custom">
-            <h3>Kamu Yakin?</h3>
-            <p>Kamu akan menghapus item ini dari keranjang.</p>
-            <div class="modal-actions-custom">
-                <button id="confirm-delete-btn" class="modal-btn-primary">Ya, Hapus</button>
-                <button id="cancel-delete-btn" class="modal-btn-secondary">Tidak Jadi</button>
-            </div>
-        </div>
-    </div>
     @stack('scripts')
 </body>
 
