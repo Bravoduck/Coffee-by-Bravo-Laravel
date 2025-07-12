@@ -35,6 +35,16 @@
             </div>
         </div>
     </div>
+    <div class="modal-overlay-custom" id="confirm-delete-modal">
+        <div class="modal-content-custom">
+            <h3>Kamu Yakin?</h3>
+            <p>Kamu akan membatalkan semua pesanan dan tidak akan melanjutkan pembayaran.</p>
+            <div class="modal-actions-custom">
+                <button id="confirm-delete-btn" class="modal-btn-secondary">Ya, Batalkan</button>
+                <button id="cancel-delete-btn" class="modal-btn-primary">TIDAK JADI</button>
+            </div>
+        </div>
+    </div>
     @stack('scripts')
 </body>
 
