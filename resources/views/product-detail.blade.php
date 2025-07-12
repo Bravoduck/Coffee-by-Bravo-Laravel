@@ -1,23 +1,17 @@
-{{-- 1. Memberitahu file ini untuk memakai Cetak Biru --}}
 @extends('layouts.app')
 
-{{-- 2. Menandai semua konten unik halaman ini sebagai 'content' --}}
 @section('content')
 <div class="mobile-container">
     <header class="detail-header">
         <a href="{{ url('/') }}" class="back-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path
-                    d="M7.82843 10.9999H20V12.9999H7.82843L13.1924 18.3638L11.7782 19.778L4 11.9999L11.7782 4.22168L13.1924 5.63589L7.82843 10.9999Z">
-                </path>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.82843 10.9999H20V12.9999H7.82843L13.1924 18.3638L11.7782 19.778L4 11.9999L11.7782 4.22168L13.1924 5.63589L7.82843 10.9999Z"></path></svg>
         </a>
         <h1 id="product-name-title-header">{{ $product->name }}</h1>
     </header>
 
     <main class="detail-main" data-base-price="{{ $product->price }}">
         <section class="product-summary-display">
-            <img src="{{ $product->image }}" alt="{{ $product->name }}" id="product-detail-image">
+            <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" id="product-detail-image">
             <h2 id="product-detail-name" data-product-id="{{ $product->id }}">{{ $product->name }}</h2>
             <p id="product-detail-description">{{ $product->description }}</p>
             <p id="product-detail-price">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
@@ -28,7 +22,7 @@
         </section>
 
         <form id="options-form" data-add-to-cart-url="{{ route('cart.add') }}">
-            {{-- Bagian form kustomisasi Anda tetap sama --}}
+            {{-- ... Seluruh section form Anda dari Ukuran Cup sampai Topping ... --}}
             <section class="option-group">
                 <div class="option-group-header">
                     <h2>Ukuran Cup</h2>
@@ -134,22 +128,14 @@
                         class="option-price">+Rp 4.500</span><input type="checkbox" name="topping"
                         data-price="4500"><span class="custom-checkbox"></span></label></div>
             </section>
-
         </form>
     </main>
     <footer class="sticky-footer">
-        <div class="quantity-selector"><button id="decrease-qty">-</button><span id="quantity">1</span><button
-                id="increase-qty">+</button></div>
+        <div class="quantity-selector"><button id="decrease-qty">-</button><span id="quantity">1</span><button id="increase-qty">+</button></div>
         <button id="add-to-cart-btn" class="add-to-cart-btn">
             <span id="cart-btn-text">Tambah</span><span id="cart-btn-price"></span>
         </button>
     </footer>
-</div>
-<div class="modal-overlay" id="success-modal" style="display: none;">
-    {{-- ... Isi modal Anda ... --}}
-</div>
-<div class="toast-notification" id="toast-notification">
-    {{-- ... Isi toast Anda ... --}}
 </div>
 @endsection
 

@@ -1,30 +1,20 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Coffee by Bravo</title>
-
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
-    <link rel="shortcut icon" href="/favicon.png">
-
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css'])
 </head>
-
 <body>
 
-    {{-- Ini adalah area kosong tempat "Isi Rumah" akan diletakkan --}}
     @yield('content')
 
-
-    {{-- Ini adalah area untuk JavaScript yang spesifik per halaman --}}
-    @stack('scripts')
     <div class="modal-overlay" id="success-modal" style="display: none;">
         <div class="modal-content">
             <h2>Lengkapi Belanjamu</h2>
@@ -43,8 +33,7 @@
             </div>
         </div>
     </div>
-
-
+    
+    @stack('scripts')
 </body>
-
 </html>
