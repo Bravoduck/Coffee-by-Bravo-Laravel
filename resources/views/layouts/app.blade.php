@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -11,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css'])
 </head>
+
 <body>
 
     @yield('content')
@@ -32,8 +34,19 @@
                 <button class="modal-btn secondary" id="modal-continue-btn">Lanjut Belanja</button>
             </div>
         </div>
+        <div class="modal-overlay-custom" id="confirm-delete-modal">
+            <div class="modal-content-custom">
+                <h3>Kamu Yakin?</h3>
+                <p>Kamu akan menghapus item ini dari keranjang.</p>
+                <div class="modal-actions-custom">
+                    <button id="confirm-delete-btn" class="modal-btn-primary">Ya, Hapus</button>
+                    <button id="cancel-delete-btn" class="modal-btn-secondary">Tidak Jadi</button>
+                </div>
+            </div>
+        </div>
     </div>
-    
+
     @stack('scripts')
 </body>
+
 </html>
