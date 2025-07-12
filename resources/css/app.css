@@ -687,6 +687,11 @@ input[type="search"]::-webkit-search-cancel-button:hover {
     font-weight: 600;
 }
 
+.text-danger {
+    color: #D32F2F;
+    font-weight: 600;
+}
+
 .pickup-estimate {
     background-color: #f7f7f7;
     border-radius: 8px;

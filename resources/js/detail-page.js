@@ -1,6 +1,6 @@
 /**
  * @file detail-page.js
- * Mengelola semua logika untuk halaman detail produk versi Laravel.
+ * FINAL VERSION
  */
 document.addEventListener('DOMContentLoaded', () => {
     const detailMain = document.querySelector('.detail-main');
@@ -12,9 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const quantityElement = document.getElementById('quantity');
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     
-    // Elemen-elemen untuk Modal
     const successModal = document.getElementById('success-modal');
     const modalContinueBtn = document.getElementById('modal-continue-btn');
+    const modalCheckoutBtn = document.getElementById('modal-checkout-btn'); // Tombol baru
 
     function calculateTotalPrice() {
         let optionsPrice = 0;
@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
         addToCartBtn.textContent = `Tambah • ${formattedPrice.replace('Rp', 'Rp ')}`;
     }
 
-    // FUNGSI UNTUK MENAMPILKAN MODAL (dari kode lama)
     function showSuccessModal(productData) {
         const defaultOptions = ['Regular Ice', 'Normal Sweet', 'Normal Ice', 'Normal Shot', 'Milk'];
         const displayedCustomizations = productData.customizations.filter(c => !defaultOptions.includes(c));
@@ -43,18 +42,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-product-customizations').textContent = displayedCustomizations.length > 0 ? displayedCustomizations.join(', ') : 'Regular';
         document.getElementById('modal-product-quantity').textContent = productData.quantity;
         
+        // Atur link untuk tombol "Cek Keranjang"
+        modalCheckoutBtn.href = '/checkout'; // Arahkan ke halaman keranjang
+
         successModal.style.display = 'flex';
     }
 
     async function handleSubmit(event) {
         event.preventDefault();
-        const form = document.getElementById('options-form');
+        // ... (kode fetch Anda yang sudah benar tetap di sini) ...
         const addToCartUrl = form.dataset.addToCartUrl;
-        const productIdElement = document.getElementById('product-detail-name');
-        const productId = productIdElement.dataset.productId;
+        const productId = document.getElementById('product-detail-name').dataset.productId;
         const quantity = parseInt(quantityElement.textContent, 10);
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
         const customizations = Array.from(form.querySelectorAll('input:checked')).map(opt => {
             return opt.closest('.option-item').querySelector('.option-name').textContent.trim().replace(/👍/g, '').trim();
         });
@@ -71,14 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || 'Gagal menambahkan produk.');
 
-            const cartFooterContainer = document.getElementById('cart-footer-container');
-            if (cartFooterContainer) {
-                cartFooterContainer.innerHTML = result.footer_html;
-            }
-
             // Panggil fungsi untuk menampilkan modal
             showSuccessModal({
-                name: productIdElement.textContent,
+                name: document.getElementById('product-detail-name').textContent,
                 quantity: quantity,
                 customizations: customizations
             });
@@ -105,21 +100,17 @@ document.addEventListener('DOMContentLoaded', () => {
             let quantity = parseInt(quantityElement.textContent, 10);
             if (quantity > 1) {
                 quantityElement.textContent = quantity - 1;
-                calculateTotalPrice();
             }
+            calculateTotalPrice();
         });
 
         // Event listener untuk menutup modal
-        if(modalContinueBtn) {
-            modalContinueBtn.addEventListener('click', () => successModal.style.display = 'none');
-        }
-        if(successModal) {
-            successModal.addEventListener('click', (e) => {
-                if (e.target === successModal) {
-                    successModal.style.display = 'none';
-                }
-            });
-        }
+        modalContinueBtn.addEventListener('click', () => successModal.style.display = 'none');
+        successModal.addEventListener('click', (e) => {
+            if (e.target === successModal) {
+                successModal.style.display = 'none';
+            }
+        });
     }
 
     calculateTotalPrice();
