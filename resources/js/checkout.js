@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (newQuantity < 1) {
             // Jika kuantitas jadi 0, tampilkan modal konfirmasi
             itemIdToDelete = itemId; // Simpan ID item yang akan dihapus
-            confirmDeleteModal.style.display = 'flex'; // Tampilkan modal
+            confirmDeleteModal.classList.add('show'); // Tampilkan modal
         } else {
             // Jika kuantitas valid, jalankan fungsi update
             await sendRequest('/checkout/update', { id: itemId, quantity: newQuantity });
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Tambahkan listener untuk tombol "Tidak Jadi"
     cancelDeleteBtn.addEventListener('click', () => {
-        confirmDeleteModal.style.display = 'none'; // Sembunyikan modal
+        confirmDeleteModal.classList.remove('show'); // Sembunyikan modal
         itemIdToDelete = null; // Reset ID
     });
 

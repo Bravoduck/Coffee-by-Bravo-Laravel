@@ -51,7 +51,9 @@
                                     </button>
                                     <div class="quantity-selector">
                                         @if ($details['quantity'] > 1)
-                                            <button class="decrease-item-qty">-</button>
+                                            <button class="decrease-item-qty">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5 11V13H19V11H5Z"></path></svg>
+                                            </button>
                                         @else
                                             <button class="decrease-item-qty">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5 11V13H19V11H5Z"></path></svg>
