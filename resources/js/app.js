@@ -1,15 +1,12 @@
 /**
  * @file script.js
- * Mengelola semua logika dan interaktivitas untuk halaman utama (index.html).
- * Dikelola oleh objek utama 'App'.
+ * FINAL VERSION untuk halaman utama.
  */
 document.addEventListener('DOMContentLoaded', () => {
 
     const App = {
         state: {
-            allProducts: [],
-            activeProducts: [],
-            cart: [],
+            cart: [], // Kita hanya butuh state keranjang untuk footer
             isClickScrolling: false,
         },
         ui: {
@@ -22,135 +19,22 @@ document.addEventListener('DOMContentLoaded', () => {
             locationName: document.querySelector('.location-name'),
             productListContainer: document.getElementById('product-list-container'),
             noResultsMessage: document.getElementById('no-results-message'),
-            productCardTemplate: document.getElementById('product-card-template'),
             filterButtons: null,
             allProductSections: null,
             allProductCards: null,
         },
 
-        async init() {
-            this.updateCartState();
+        init() {
+            // Kita tidak lagi mengambil cart dari localStorage
             this.loadSelectedStore();
 
-            // DULU INI ADA DI DALAM FUNGSI render() YANG SUDAH KITA HAPUS
-            // SEKARANG KITA AMBIL ALIH TUGASNYA DI SINI
-            // 1. Perbarui 'peta' untuk tombol-tombol filter
+            // Perbarui "peta" elemen yang dibuat oleh Blade
             this.ui.filterButtons = this.ui.filterContainer.querySelectorAll('.filter-btn');
-
-            // 2. Perbarui 'peta' untuk semua seksi & kartu produk
             this.ui.allProductSections = this.ui.productListContainer.querySelectorAll('.product-section');
             this.ui.allProductCards = this.ui.productListContainer.querySelectorAll('.product-card');
 
-            // 3. Kita panggil juga fungsi untuk menampilkan footer keranjang
-            this.renderCartFooter();
-
-            // this.render(); // Biarkan ini tetap nonaktif
-
-            // Sekarang, registerHandlers punya 'peta' yang benar untuk bekerja
+            // Daftarkan semua event handler
             this.registerHandlers();
-            this.SessionManager.init();
-        },
-
-        updateCartState() {
-            try {
-                this.state.cart = JSON.parse(localStorage.getItem('cart')) || [];
-            } catch (error) {
-                console.error('Gagal mem-parsing data keranjang:', error);
-                this.state.cart = [];
-            }
-        },
-
-        async fetchProducts() {
-            try {
-                const response = await fetch('products.json');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                this.state.allProducts = await response.json();
-                this.state.activeProducts = this.state.allProducts.filter(cat => cat.enabled !== false);
-            } catch (error) {
-                console.error("Gagal memuat produk:", error);
-                this.ui.productListContainer.innerHTML = '<p class="error-message">Gagal memuat daftar menu.</p>';
-            }
-        },
-
-        render() {
-            this.renderFilterButtons();
-            this.renderProducts();
-            this.renderCartFooter();
-        },
-
-        renderFilterButtons() {
-            this.ui.filterContainer.innerHTML = '';
-            this.state.activeProducts.forEach((category, index) => {
-                const button = document.createElement('button');
-                button.className = 'filter-btn';
-                button.dataset.filter = category.slug;
-                button.textContent = category.category;
-                if (index === 0) button.classList.add('active');
-                this.ui.filterContainer.appendChild(button);
-            });
-            this.ui.filterButtons = this.ui.filterContainer.querySelectorAll('.filter-btn');
-        },
-
-        renderProducts() {
-            this.ui.productListContainer.innerHTML = '';
-            this.state.activeProducts.forEach(category => {
-                const sectionEl = document.createElement('section');
-                sectionEl.id = category.slug;
-                sectionEl.className = 'product-section';
-
-                const headerEl = this.createProductSectionHeader(category);
-                const listEl = document.createElement('div');
-                listEl.className = 'product-list';
-
-                category.items.forEach(item => {
-                    const cardEl = this.createProductCard(item);
-                    listEl.appendChild(cardEl);
-                });
-
-                sectionEl.appendChild(headerEl);
-                sectionEl.appendChild(listEl);
-                this.ui.productListContainer.appendChild(sectionEl);
-            });
-            this.ui.productListContainer.appendChild(this.ui.noResultsMessage);
-
-            this.ui.allProductSections = this.ui.productListContainer.querySelectorAll('.product-section');
-            this.ui.allProductCards = this.ui.productListContainer.querySelectorAll('.product-card');
-        },
-
-        createProductSectionHeader(category) {
-            const headerEl = document.createElement('div');
-            headerEl.className = 'product-list-header';
-            headerEl.innerHTML = `<h2>${category.category}</h2>${category.items.length > 0 ? `<span>${category.items.length} items</span>` : ''}`;
-            return headerEl;
-        },
-
-        createProductCard(item) {
-            const card = this.ui.productCardTemplate.content.cloneNode(true).querySelector('.product-card');
-            card.dataset.productName = item.name;
-            card.dataset.basePrice = item.price;
-            card.dataset.description = item.description;
-            card.dataset.imageUrl = item.image;
-            card.querySelector('.product-image').src = item.image;
-            card.querySelector('.product-image').alt = item.name;
-            card.querySelector('h3').textContent = item.name;
-            card.querySelector('.product-description').textContent = item.description;
-            card.querySelector('.product-price').textContent = this.formatCurrency(item.price);
-            return card;
-        },
-
-        renderCartFooter() {
-            const existingFooter = document.querySelector('.cart-footer');
-            if (existingFooter) existingFooter.remove();
-            if (this.state.cart.length === 0) return;
-
-            const totalItems = this.state.cart.reduce((sum, item) => sum + item.quantity, 0);
-            const totalPrice = this.state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-            const footer = document.createElement('div');
-            footer.className = 'cart-footer';
-            footer.innerHTML = `<div class="cart-summary"><span>Cek Keranjang (${totalItems} produk)</span></div><div class="cart-total"><span>${this.formatCurrency(totalPrice)}</span></div>`;
-            document.body.appendChild(footer);
-            footer.addEventListener('click', () => window.location.href = 'checkout.html');
         },
 
         loadSelectedStore() {
@@ -159,13 +43,30 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         registerHandlers() {
-            this.ui.searchIconBtn.addEventListener('click', () => this.SearchHandler.enter());
-            this.ui.backFromSearchBtn.addEventListener('click', (e) => this.SearchHandler.exit(e));
-            this.ui.searchInput.addEventListener('input', () => this.SearchHandler.filter());
-
-            this.ui.filterContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('filter-btn')) this.CategoryFilter.handle(e);
+            // Pastikan elemen ada sebelum menambahkan listener
+            if (this.ui.searchIconBtn) {
+                this.ui.searchIconBtn.addEventListener('click', () => this.SearchHandler.enter());
+            }
+            if (this.ui.backFromSearchBtn) {
+                this.ui.backFromSearchBtn.addEventListener('click', (e) => this.SearchHandler.exit(e));
+            }
+            if (this.ui.searchInput) {
+                this.ui.searchInput.addEventListener('input', () => this.SearchHandler.filter());
+            }
+            if (this.ui.filterContainer) {
+                this.ui.filterContainer.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('filter-btn')) this.CategoryFilter.handle(e);
+                });
+            }
+            
+            // Kita tetap butuh listener pada body untuk cart-footer yang dinamis
+            document.body.addEventListener('click', (e) => {
+                if (e.target.closest('.cart-footer')) {
+                    window.location.href = '/checkout';
+                }
             });
+
+            this.ScrollSpy.init();
         },
 
         SearchHandler: {
@@ -173,6 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 App.ui.appHeader.classList.add('search-active');
                 App.ui.filterWrapper.classList.add('hidden');
                 App.ui.noResultsMessage.style.display = 'none';
+                App.ui.searchInput.style.display = 'block'; // Tampilkan input
+                App.ui.backFromSearchBtn.style.display = 'inline-flex'; // Tampilkan tombol kembali
                 App.ui.searchInput.focus();
             },
             exit(event) {
@@ -180,6 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 App.ui.appHeader.classList.remove('search-active');
                 App.ui.filterWrapper.classList.remove('hidden');
                 App.ui.searchInput.value = '';
+                App.ui.searchInput.style.display = 'none'; // Sembunyikan lagi
+                App.ui.backFromSearchBtn.style.display = 'none'; // Sembunyikan lagi
                 this.filter();
             },
             filter() {
@@ -200,7 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         CategoryFilter: {
-            handle(event) {
+            // ... (kode CategoryFilter Anda tetap sama)
+             handle(event) {
                 if (App.ui.appHeader.classList.contains('search-active')) return;
                 const clickedButton = event.target;
                 const targetSection = document.getElementById(clickedButton.dataset.filter);
@@ -223,36 +129,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     setTimeout(() => {
                         App.state.isClickScrolling = false;
-                    }, 1);
+                    }, 1000); // Beri waktu lebih agar tidak bentrok dengan scroll spy
                 }
             }
         },
 
-        /* NONAKTIFKAN SELURUH OBJEK INI
-ProductCardHandler: {
-    handle(event) {
-        const addButton = event.target.closest('.add-btn');
-        if (!addButton) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        const productCard = addButton.closest('.product-card');
-        const productData = {
-            name: productCard.dataset.productName,
-            price: parseInt(productCard.dataset.basePrice, 10),
-            description: productCard.dataset.description,
-            imageUrl: productCard.dataset.imageUrl,
-        };
-
-        if (!productData.name || isNaN(productData.price)) return;
-        sessionStorage.setItem('currentProduct', JSON.stringify(productData));
-        window.location.href = 'detail.html';
-    }
-},
-*/
-
         ScrollSpy: {
+            // ... (kode ScrollSpy Anda tetap sama)
             observer: null,
             init() {
                 if (!App.ui.allProductSections || App.ui.allProductSections.length === 0) return;
@@ -286,39 +169,6 @@ ProductCardHandler: {
                 }
             }
         },
-
-        SessionManager: {
-            INACTIVITY_TIMEOUT: 60 * 60 * 1000,
-            inactivityTimer: null,
-            init() {
-                this.setupInactivityListeners();
-            },
-            end() {
-                clearTimeout(this.inactivityTimer);
-                alert('Sesi Anda berakhir karena tidak ada aktivitas.');
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.reload();
-            },
-            reset() {
-                clearTimeout(this.inactivityTimer);
-                this.inactivityTimer = setTimeout(() => this.end(), this.INACTIVITY_TIMEOUT);
-            },
-            setupInactivityListeners() {
-                this.reset();
-                ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-                    window.addEventListener(event, () => this.reset());
-                });
-            }
-        },
-
-        formatCurrency(amount) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(amount).replace(/\s?Rp/g, 'Rp ');
-        }
     };
 
     App.init();
