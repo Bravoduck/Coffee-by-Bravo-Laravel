@@ -17,7 +17,6 @@
                 <div class="store-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C15.3137 2 18 4.68629 18 8C18 12.4183 12 19 12 19C12 19 6 12.4183 6 8C6 4.68629 8.68629 2 12 2ZM12 10.5C13.3807 10.5 14.5 9.38071 14.5 8C14.5 6.61929 13.3807 5.5 12 5.5C10.6193 5.5 9.5 6.61929 9.5 8C9.5 9.38071 10.6193 10.5 12 10.5Z"></path></svg>
                 </div>
-                {{-- Kita akan buat ini dinamis nanti --}}
                 <span class="store-name-display text-danger">Pilih Lokasi Pickup</span> 
             </div>
             <div class="pickup-estimate">
@@ -39,29 +38,28 @@
                     @foreach ($cart as $id => $details)
                         @php $totalPrice += $details['price'] * $details['quantity']; @endphp
                         <div class="cart-item" data-id="{{ $id }}">
-                            <div class="cart-item-row-1">
-                                <img src="{{ asset($details['image']) }}" alt="{{ $details['name'] }}" class="cart-item-image">
-                                <div class="cart-item-details">
-                                    <h3>{{ $details['name'] }}</h3>
-                                    <p>Regular</p> {{-- Kustomisasi nanti --}}
-                                </div>
-                                <span class="cart-item-price">Rp {{ number_format($details['price'] * $details['quantity'], 0, ',', '.') }}</span>
+                            <div class="cart-item-details-column">
+                                <h3>{{ $details['name'] }}</h3>
+                                <p>Regular</p>
+                                <span class="cart-item-price-main">Rp {{ number_format($details['price'], 0, ',', '.') }}</span>
                             </div>
-                            <div class="cart-item-row-2">
-                                <button class="edit-item-btn" title="Edit Item">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
-                                </button>
-                                <div class="quantity-selector">
-                                    @if ($details['quantity'] > 1)
-                                        <button class="decrease-item-qty">-</button>
-                                    @else
-                                        {{-- Jika kuantitas 1, tombol kurang menjadi tong sampah --}}
-                                        <button class="decrease-item-qty">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8Z"></path></svg>
-                                        </button>
-                                    @endif
-                                    <span>{{ $details['quantity'] }}</span>
-                                    <button class="increase-item-qty">+</button>
+                            <div class="cart-item-media-column">
+                                <img src="{{ asset($details['image']) }}" alt="{{ $details['name'] }}" class="cart-item-image">
+                                <div class="cart-item-actions">
+                                    <button class="edit-item-btn" title="Edit Item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M15.2929 3.29289C16.0739 2.51184 17.34 2.51184 18.121 3.29289L19.707 4.87868C20.4881 5.65973 20.4881 6.92606 19.707 7.70711L10.4141 17H7V13.5858L15.2929 3.29289ZM16 5.41421L8 13.4142V16H10.5858L18.5858 8.00005L16 5.41421Z"></path><path d="M16 5.41421L18.5858 8.00005L17.2929 9.29294L14.7071 6.70716L16 5.41421Z"></path><path d="M5 20H19V21C19 21.5523 18.5523 22 18 22H6C5.44772 22 5 21.5523 5 21V20Z"></path></svg>
+                                    </button>
+                                    <div class="quantity-selector">
+                                        @if ($details['quantity'] > 1)
+                                            <button class="decrease-item-qty">-</button>
+                                        @else
+                                            <button class="decrease-item-qty">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8Z"></path></svg>
+                                            </button>
+                                        @endif
+                                        <span>{{ $details['quantity'] }}</span>
+                                        <button class="increase-item-qty">+</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -75,7 +73,6 @@
         </section>
     </main>
 
-    {{-- Footer Pembayaran --}}
     @if ($cart && count($cart) > 0)
         <footer class="sticky-footer checkout-footer">
             <div class="checkout-total-summary">
@@ -87,3 +84,7 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+    @vite('resources/js/checkout.js')
+@endpush

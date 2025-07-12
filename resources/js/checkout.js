@@ -6,13 +6,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     cartItemsContainer.addEventListener('click', function (event) {
         const target = event.target;
-        const increaseBtn = target.closest('.increase-item-qty');
-        const decreaseBtn = target.closest('.decrease-item-qty');
-        
-        if (increaseBtn) {
-            handleQuantityChange(increaseBtn, 1);
-        } else if (decreaseBtn) {
-            handleQuantityChange(decreaseBtn, -1);
+        const actionButton = target.closest('.increase-item-qty, .decrease-item-qty, .edit-item-btn');
+
+        if (!actionButton) return;
+
+        if (actionButton.matches('.increase-item-qty')) {
+            handleQuantityChange(actionButton, 1);
+        } else if (actionButton.matches('.decrease-item-qty')) {
+            handleQuantityChange(actionButton, -1);
+        } else if (actionButton.matches('.edit-item-btn')) {
+            alert('Fitur Edit akan kita implementasikan di langkah berikutnya!');
         }
     });
 
@@ -24,12 +27,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const newQuantity = currentQuantity + change;
 
         cartItem.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        cartItem.style.opacity = '0.5';
 
         if (newQuantity < 1) {
             if (confirm('Anda yakin ingin menghapus item ini dari keranjang?')) {
                 await sendRequest('/checkout/remove', { id: itemId });
             } else {
                 cartItem.querySelectorAll('button').forEach(btn => btn.disabled = false);
+                cartItem.style.opacity = '1';
             }
         } else {
             await sendRequest('/checkout/update', { id: itemId, quantity: newQuantity });
@@ -47,8 +52,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: JSON.stringify(data)
             });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Error server.');
+            if (!response.ok) {
+                const result = await response.json().catch(() => ({ message: 'Error tidak diketahui dari server.' }));
+                throw new Error(result.message);
+            }
             window.location.reload();
         } catch (error) {
             console.error('Request Error:', error);
