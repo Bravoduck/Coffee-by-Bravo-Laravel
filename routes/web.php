@@ -17,3 +17,8 @@ Route::get('/checkout', [CartController::class, 'index'])->name('checkout.index'
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::post('/checkout/remove', [CartController::class, 'remove'])->name('checkout.remove');
 Route::post('/checkout/update', [CartController::class, 'update'])->name('checkout.update');
+
+Route::get('/cart/clear', function () {
+    session()->forget('cart'); // Menghapus data keranjang dari session
+    return redirect('/checkout')->with('status', 'Keranjang berhasil dikosongkan!');
+});

@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const successModal = document.getElementById('success-modal');
     const modalContinueBtn = document.getElementById('modal-continue-btn');
-    const modalCheckoutBtn = document.getElementById('modal-checkout-btn'); // Tombol baru
+    const modalCheckoutBtn = document.getElementById('modal-checkout-btn');
 
     function calculateTotalPrice() {
         let optionsPrice = 0;
@@ -35,28 +35,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showSuccessModal(productData) {
         const defaultOptions = ['Regular Ice', 'Normal Sweet', 'Normal Ice', 'Normal Shot', 'Milk'];
+        
+        // Saring kustomisasi untuk hanya menampilkan yang bukan default
         const displayedCustomizations = productData.customizations.filter(c => !defaultOptions.includes(c));
 
         document.getElementById('modal-product-image').src = document.getElementById('product-detail-image').src;
         document.getElementById('modal-product-name').textContent = `Iced ${productData.name}`;
-        document.getElementById('modal-product-customizations').textContent = displayedCustomizations.length > 0 ? displayedCustomizations.join(', ') : 'Regular';
-        document.getElementById('modal-product-quantity').textContent = productData.quantity;
         
-        // Atur link untuk tombol "Cek Keranjang"
-        modalCheckoutBtn.href = '/checkout'; // Arahkan ke halaman keranjang
-
+        // Tampilkan kustomisasi yang sudah bersih, atau 'Regular' jika tidak ada
+        document.getElementById('modal-product-customizations').textContent = displayedCustomizations.length > 0 ? displayedCustomizations.join(', ') : 'Regular';
+        
+        document.getElementById('modal-product-quantity').textContent = productData.quantity;
+        modalCheckoutBtn.href = '/checkout';
         successModal.style.display = 'flex';
     }
 
     async function handleSubmit(event) {
         event.preventDefault();
-        // ... (kode fetch Anda yang sudah benar tetap di sini) ...
         const addToCartUrl = form.dataset.addToCartUrl;
-        const productId = document.getElementById('product-detail-name').dataset.productId;
+        const productIdElement = document.getElementById('product-detail-name');
+        const productId = productIdElement.dataset.productId;
         const quantity = parseInt(quantityElement.textContent, 10);
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // LOGIKA BARU UNTUK MEMBERSIHKAN TEKS KUSTOMISASI
         const customizations = Array.from(form.querySelectorAll('input:checked')).map(opt => {
-            return opt.closest('.option-item').querySelector('.option-name').textContent.trim().replace(/👍/g, '').trim();
+            const nameSpan = opt.closest('.option-item').querySelector('.option-name');
+            const clone = nameSpan.cloneNode(true);
+            // Hapus elemen badge jika ada
+            if (clone.querySelector('.badge')) {
+                clone.querySelector('.badge').remove();
+            }
+            // Ambil teks bersihnya
+            return clone.textContent.trim().replace(/👍/g, '').trim();
         });
 
         addToCartBtn.disabled = true;
@@ -66,18 +77,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(addToCartUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                body: JSON.stringify({ product_id: productId, quantity: quantity, customizations: customizations })
+                body: JSON.stringify({ product_id: productId, quantity: quantity, customizations: customizations }) // Kirim data bersih
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || 'Gagal menambahkan produk.');
-
-            // Panggil fungsi untuk menampilkan modal
+            const cartFooterContainer = document.getElementById('cart-footer-container');
+            if (cartFooterContainer) {
+                cartFooterContainer.innerHTML = result.footer_html;
+            }
             showSuccessModal({
-                name: document.getElementById('product-detail-name').textContent,
+                name: productIdElement.textContent,
                 quantity: quantity,
-                customizations: customizations
+                customizations: customizations // Gunakan data bersih untuk modal
             });
-
         } catch (error) {
             console.error('Error:', error);
             alert('Terjadi kesalahan: ' + error.message);
