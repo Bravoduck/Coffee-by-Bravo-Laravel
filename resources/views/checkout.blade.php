@@ -12,7 +12,7 @@
     </header>
 
     <main class="checkout-main">
-        {{-- Bagian Lokasi Pickup --}}
+        {{-- Bagian Lokasi Pickup (Akan selalu terlihat) --}}
         <section class="pickup-location-section">
             <h3>Ambil pesananmu di</h3>
             <div class="store-info">
@@ -31,71 +31,67 @@
             </div>
         </section>
 
-        {{-- Bagian Detail Pesanan --}}
-        <section>
-            <div class="section-header">
-                <h2>Detail Pesanan</h2>
-                <a href="{{ url('/') }}" class="add-more-btn">Tambah</a>
-            </div>
+        {{-- ▼▼▼ KITA BUNGKUS BAGIAN INI ▼▼▼ --}}
+        <div id="checkout-order-details">
+            <section>
+                <div class="section-header">
+                    <h2>Detail Pesanan</h2>
+                    <a href="{{ url('/') }}" class="add-more-btn">Tambah</a>
+                </div>
 
-            @if ($cart && count($cart) > 0)
-            <div id="cart-items-container">
-                @php $totalPrice = 0; @endphp
-                @foreach ($cart as $id => $details)
-                @php $totalPrice += $details['price'] * $details['quantity']; @endphp
-                <div class="cart-item" data-id="{{ $id }}">
-                    <div class="cart-item-details-column">
-                        <h3>{{ $details['name'] }}</h3>
-
-                        @php
-                        $defaultOptions = ['Regular Ice', 'Normal Sweet', 'Normal Ice', 'Normal Shot', 'Milk'];
-                        // Pastikan 'customizations' ada dan merupakan array sebelum diproses
-                        $customizations = $details['customizations'] ?? [];
-                        $displayCustomizations = array_diff($customizations, $defaultOptions);
-                        @endphp
-
-                        <p>{{ !empty($displayCustomizations) ? implode(', ', $displayCustomizations) : 'Regular' }}</p>
-
-                        <span class="cart-item-price-main">Rp {{ number_format($details['price'] * $details['quantity'], 0, ',', '.') }}</span>
-                    </div>
-                    <div class="cart-item-media-column">
-                        <img src="{{ asset($details['image']) }}" alt="{{ $details['name'] }}" class="cart-item-image">
-                        <div class="cart-item-actions">
-                            <button class="edit-item-btn" title="Edit Item">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M15.2929 3.29289C16.0739 2.51184 17.34 2.51184 18.121 3.29289L19.707 4.87868C20.4881 5.65973 20.4881 6.92606 19.707 7.70711L10.4141 17H7V13.5858L15.2929 3.29289ZM16 5.41421L8 13.4142V16H10.5858L18.5858 8.00005L16 5.41421Z"></path>
-                                    <path d="M16 5.41421L18.5858 8.00005L17.2929 9.29294L14.7071 6.70716L16 5.41421Z"></path>
-                                    <path d="M5 20H19V21C19 21.5523 18.5523 22 18 22H6C5.44772 22 5 21.5523 5 21V20Z"></path>
-                                </svg>
-                            </button>
-                            <div class="quantity-selector">
-                                @if ($details['quantity'] > 1)
-                                <button class="decrease-item-qty">
+                @if ($cart && count($cart) > 0)
+                <div id="cart-items-container">
+                    {{-- ... (Perulangan @foreach Anda tetap di sini) ... --}}
+                    @php $totalPrice = 0; @endphp
+                    @foreach ($cart as $id => $details)
+                    @php $totalPrice += $details['price'] * $details['quantity']; @endphp
+                    <div class="cart-item" data-id="{{ $id }}">
+                        <div class="cart-item-details-column">
+                            <h3>{{ $details['name'] }}</h3>
+                            @php
+                            $defaultOptions = ['Regular Ice', 'Normal Sweet', 'Normal Ice', 'Normal Shot', 'Milk'];
+                            $customizations = $details['customizations'] ?? [];
+                            $displayCustomizations = array_diff($customizations, $defaultOptions);
+                            @endphp
+                            <p>{{ !empty($displayCustomizations) ? implode(', ', $displayCustomizations) : 'Regular' }}</p>
+                            <span class="cart-item-price-main">Rp {{ number_format($details['price'] * $details['quantity'], 0, ',', '.') }}</span>
+                        </div>
+                        <div class="cart-item-media-column">
+                            <img src="{{ asset($details['image']) }}" alt="{{ $details['name'] }}" class="cart-item-image">
+                            <div class="cart-item-actions">
+                                <button class="edit-item-btn" title="Edit Item">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M5 11V13H19V11H5Z"></path>
+                                        <path d="M15.2929 3.29289C16.0739 2.51184 17.34 2.51184 18.121 3.29289L19.707 4.87868C20.4881 5.65973 20.4881 6.92606 19.707 7.70711L10.4141 17H7V13.5858L15.2929 3.29289ZM16 5.41421L8 13.4142V16H10.5858L18.5858 8.00005L16 5.41421Z"></path>
+                                        <path d="M16 5.41421L18.5858 8.00005L17.2929 9.29294L14.7071 6.70716L16 5.41421Z"></path>
+                                        <path d="M5 20H19V21C19 21.5523 18.5523 22 18 22H6C5.44772 22 5 21.5523 5 21V20Z"></path>
                                     </svg>
                                 </button>
-                                @else
-                                <button class="decrease-item-qty">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M5 11V13H19V11H5Z"></path>
-                                    </svg>
-                                </button>
-                                @endif
-                                <span>{{ $details['quantity'] }}</span>
-                                <button class="increase-item-qty">+</button>
+                                <div class="quantity-selector">
+                                    @if ($details['quantity'] > 1)
+                                    <button class="decrease-item-qty">-</button>
+                                    @else
+                                    <button class="decrease-item-qty">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8Z"></path>
+                                        </svg>
+                                    </button>
+                                    @endif
+                                    <span>{{ $details['quantity'] }}</span>
+                                    <button class="increase-item-qty">+</button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    @endforeach
                 </div>
-                @endforeach
-            </div>
-            @else
-            <div class="empty-cart-msg" style="padding: 20px 0;">
-                <p>Keranjang Anda masih kosong.</p>
-            </div>
-            @endif
-        </section>
+                @else
+                <div class="empty-cart-msg" style="padding: 20px 0;">
+                    <p>Keranjang Anda masih kosong.</p>
+                </div>
+                @endif
+            </section>
+        </div>
+        {{-- ▲▲▲ BATAS AKHIR BUNGKUSAN ▲▲▲ --}}
     </main>
 
     @if ($cart && count($cart) > 0)
@@ -104,13 +100,13 @@
             <span class="total-label">Total Pembayaran</span>
             <span class="total-amount">Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
         </div>
-        <a href="#" class="add-to-cart-btn">Lanjutkan</a>
+        <a href="#" id="process-payment-btn" class="add-to-cart-btn">Lanjutkan</a>
     </footer>
     @endif
 </div>
 @endsection
+
 <script>
-    // Membuat variabel JavaScript global dari data cart PHP
     window.cartItems = @json($cart ?? []);
 </script>
 

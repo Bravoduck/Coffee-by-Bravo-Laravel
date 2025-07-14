@@ -322,6 +322,7 @@ main#product-list-container {
     cursor: pointer;
     z-index: 50;
     animation: fadeInFooter 0.3s ease-out;
+    text-decoration: none;
 }
 
 @keyframes fadeInFooter {
@@ -1266,6 +1267,7 @@ input[type="search"]::-webkit-search-cancel-button:hover {
     display: flex;
     justify-content: center;
     gap: 8px;
+    text-decoration: none;
 }
 
 .quantity-selector {

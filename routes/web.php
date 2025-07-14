@@ -3,6 +3,7 @@
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OrderController;
 
 // Halaman utama
 Route::get('/', [ProductController::class, 'index']);
@@ -22,3 +23,5 @@ Route::get('/cart/clear', function () {
     session()->forget('cart'); // Menghapus data keranjang dari session
     return redirect('/checkout')->with('status', 'Keranjang berhasil dikosongkan!');
 });
+
+Route::post('/checkout/process', [OrderController::class, 'process'])->name('checkout.process');
