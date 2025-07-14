@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Store;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect; // Tambahkan ini untuk kejelasan
 
 class StoreController extends Controller
 {
@@ -27,7 +28,7 @@ class StoreController extends Controller
             'name' => $store->name,
         ]);
 
-        // Arahkan pengguna kembali ke halaman checkout
-        return redirect()->route('checkout.index');
+        // Arahkan pengguna kembali ke halaman dari mana mereka datang
+        return Redirect::back();
     }
 }
