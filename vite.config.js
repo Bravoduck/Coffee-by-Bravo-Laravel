@@ -8,7 +8,8 @@ export default defineConfig({
                 'resources/css/app.css', 
                 'resources/js/app.js',
                 'resources/js/detail-page.js',
-                'resources/js/checkout.js'
+                'resources/js/checkout.js',
+                'resources/js/store.js'
             ],
             refresh: true,
         }),
