@@ -1,9 +1,10 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OrderController;
+use App\Http\Controllers\StoreController;
 
 // Halaman utama
 Route::get('/', [ProductController::class, 'index']);
@@ -19,9 +20,11 @@ Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::post('/checkout/remove', [CartController::class, 'remove'])->name('checkout.remove');
 Route::post('/checkout/update', [CartController::class, 'update'])->name('checkout.update');
 
-Route::get('/cart/clear', function () {
-    session()->forget('cart'); // Menghapus data keranjang dari session
-    return redirect('/checkout')->with('status', 'Keranjang berhasil dikosongkan!');
-});
-
+// Aksi untuk memproses pembayaran
 Route::post('/checkout/process', [OrderController::class, 'process'])->name('checkout.process');
+
+// Route untuk menampilkan halaman daftar store
+Route::get('/stores', [StoreController::class, 'index'])->name('stores.index');
+
+// Route untuk memproses pemilihan store
+Route::get('/stores/select/{store}', [StoreController::class, 'select'])->name('stores.select');

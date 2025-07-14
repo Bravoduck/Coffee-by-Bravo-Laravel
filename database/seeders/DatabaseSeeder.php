@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         // Hapus komentar atau tambahkan baris ini
         $this->call([
             ProductSeeder::class,
+            StoreSeeder::class,
         ]);
     }
 }

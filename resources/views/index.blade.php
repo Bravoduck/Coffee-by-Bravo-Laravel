@@ -21,10 +21,14 @@
                     </svg>
                     <div>
                         <span class="pickup-label">Pick up di store</span>
-                        <span class="location-name">Pilih store</span>
+                        {{-- Tampilkan nama store jika sudah dipilih --}}
+                        <span class="location-name">
+                            {{ session('selected_store.name') ?? 'Pilih store' }}
+                        </span>
                     </div>
                 </div>
             </a>
+
 
             {{-- Input Search (tersembunyi di mode normal) --}}
             <input type="search" id="product-search-input" class="search-input-main" placeholder="">
@@ -99,5 +103,5 @@
 @endsection
 
 @push('scripts')
-    @vite('resources/js/app.js')
+@vite('resources/js/app.js')
 @endpush

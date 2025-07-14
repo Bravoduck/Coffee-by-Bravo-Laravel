@@ -13,7 +13,12 @@ class CartController extends Controller
     public function index()
     {
         $cart = session('cart', []);
-        return view('checkout', ['cart' => $cart]);
+        $selectedStore = session()->get('selected_store', null); // <-- TAMBAHKAN INI
+
+        return view('checkout', [
+            'cart' => $cart,
+            'selectedStore' => $selectedStore // <-- TAMBAHKAN INI
+        ]);
     }
 
     /**

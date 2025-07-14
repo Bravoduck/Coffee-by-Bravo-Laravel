@@ -15,10 +15,13 @@ class ProductController extends Controller
     {
         $categories = Category::with('products')->get();
         $cart = session()->get('cart', []);
+        $selectedStore = session()->get('selected_store', null);
 
         return view('index', [
             'categories' => $categories,
-            'cart' => $cart
+            'cart' => $cart,
+            'selectedStore' => $selectedStore
+            
         ]);
     }
 
