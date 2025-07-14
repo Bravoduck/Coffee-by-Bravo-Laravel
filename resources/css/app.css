@@ -428,7 +428,6 @@ main#product-list-container {
 }
 
 .search-input {
-    display: none;
     width: 100%;
     padding: 8px 16px;
     border: 1.5px solid var(--border-color);
@@ -436,6 +435,7 @@ main#product-list-container {
     font-size: 14px;
     font-family: 'Poppins', sans-serif;
     box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 
 .search-input:focus {
@@ -1147,10 +1147,12 @@ input[type="search"]::-webkit-search-cancel-button:hover {
     font-size: 14px;
     font-family: 'Poppins', sans-serif;
     transition: border-color 0.2s;
+    text-transform: uppercase;
 }
 
 .customer-details-section input[type="text"]::placeholder {
     color: var(--text-light);
+    text-transform: none;
 }
 
 .customer-details-section input[type="text"]:focus {
@@ -1605,6 +1607,20 @@ input[type="search"]::-webkit-search-cancel-button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.icon-button:hover {
+    background-color: #f0f0f0;
+}
+
+.icon-button .icon {
+    width: 24px;
+    height: 24px;
+    color: var(--text-color);
 }
 
 .app-header #back-from-search {

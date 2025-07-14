@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const header = document.querySelector('.store-header');
     const searchInput = document.getElementById('store-search-input');
-    const searchIconBtn = document.getElementById('search-icon-btn');
-    const title = header.querySelector('h1.header-title'); // Lebih spesifik
+    const searchIconBtn = document.getElementById('header-search-btn'); // Pastikan ID ini benar
+    const title = header.querySelector('h1.header-title');
     
     const storeListContainer = document.querySelector('.store-list');
     const allStoreCards = storeListContainer.querySelectorAll('.store-card');
@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         allStoreCards.forEach(card => {
             const storeName = card.querySelector('.store-name').textContent.toLowerCase();
-            const matches = storeName.includes(query);
+            const storeAddress = card.querySelector('.store-address').textContent.toLowerCase();
+            const matches = storeName.includes(query) || storeAddress.includes(query);
             card.style.display = matches ? 'flex' : 'none';
             if(matches) {
                 storesFound++;
@@ -40,4 +41,36 @@ document.addEventListener('DOMContentLoaded', () => {
             storeCountElement.textContent = `${originalStoreCount} Store tersedia`;
         }
     });
+
+    // Event listener untuk tombol ESC atau klik di luar untuk menutup search
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && header.classList.contains('search-active')) {
+            closeSearch();
+        }
+    });
+
+    // Event listener untuk blur pada search input
+    searchInput.addEventListener('blur', (e) => {
+        // Delay untuk mencegah penutupan langsung saat klik
+        setTimeout(() => {
+            if (!searchInput.value.trim()) {
+                closeSearch();
+            }
+        }, 150);
+    });
+
+    // Fungsi untuk menutup search
+    function closeSearch() {
+        header.classList.remove('search-active');
+        title.style.display = 'block';
+        searchInput.style.display = 'none';
+        searchInput.value = '';
+        searchIconBtn.style.display = 'block';
+        
+        // Reset tampilan semua store
+        allStoreCards.forEach(card => {
+            card.style.display = 'flex';
+        });
+        storeCountElement.textContent = `${originalStoreCount} Store tersedia`;
+    }
 });

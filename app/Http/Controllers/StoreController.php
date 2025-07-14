@@ -4,16 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Store;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect; // Tambahkan ini untuk kejelasan
 
 class StoreController extends Controller
 {
     /**
      * Menampilkan halaman daftar semua store.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $stores = Store::all(); // Ambil semua data store dari database
+        $stores = Store::all();
+        
+        // Simpan URL referrer ke session jika ada
+        if ($request->has('from')) {
+            session()->put('store_redirect_url', $request->get('from'));
+        } elseif (!session()->has('store_redirect_url')) {
+            // Jika tidak ada parameter 'from', gunakan URL sebelumnya
+            session()->put('store_redirect_url', url()->previous());
+        }
+        
         return view('stores', ['stores' => $stores]);
     }
 
@@ -28,7 +36,9 @@ class StoreController extends Controller
             'name' => $store->name,
         ]);
 
-        // Arahkan pengguna kembali ke halaman dari mana mereka datang
-        return Redirect::back();
+        // Ambil URL redirect dari session
+        $redirectUrl = session()->pull('store_redirect_url', route('checkout.index'));
+        
+        return redirect($redirectUrl);
     }
 }
