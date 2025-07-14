@@ -34,7 +34,7 @@
         {{-- ▼▼▼ BAGIAN NAMA PEMESAN YANG KEMBALI ▼▼▼ --}}
         <section class="customer-details-section">
             <div class="form-group">
-                <label for="customer_name">Data Pemesan</label>
+                <label for="customer_name">Nama Pemesan</label>
                 <input type="text" id="customer_name" name="customer_name" placeholder="Masukkan nama Anda" required>
             </div>
         </section>
