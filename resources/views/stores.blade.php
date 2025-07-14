@@ -9,7 +9,7 @@
             </a>
         </div>
         <div class="header-col center">
-            <h1>Store</h1>
+            <h1 class="header-title">Pilih Store</h1>
             <input type="search" id="store-search-input" placeholder="Cari nama store..." class="search-input" style="display:none;" />
         </div>
         <div class="header-col right">
@@ -21,7 +21,7 @@
     <main class="store-list-main">
         <p class="store-count">{{ count($stores) }} Store tersedia</p>
         <div class="store-list">
-            @foreach ($stores as $store)
+            @forelse ($stores as $store)
                 <a href="{{ route('stores.select', $store->id) }}" class="store-card">
                     <div class="store-details">
                         <h3 class="store-name">{{ $store->name }}</h3>
@@ -32,7 +32,9 @@
                         <svg class="go-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"></path></svg>
                     </div>
                 </a>
-            @endforeach
+            @empty
+                <p>Tidak ada store yang ditemukan.</p>
+            @endforelse
         </div>
     </main>
 </div>

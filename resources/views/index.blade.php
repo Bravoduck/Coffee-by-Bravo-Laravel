@@ -12,7 +12,7 @@
             </a>
 
             {{-- Picker Lokasi (terlihat di mode normal) --}}
-            <a href="#" class="location-picker-link">
+            <a href="{{ route('stores.index') }}" class="location-picker-link">
                 <div class="location-picker">
                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M15.2929 3.29289C16.0739 2.51184 17.34 2.51184 18.121 3.29289L19.707 4.87868C20.4881 5.65973 20.4881 6.92606 19.707 7.70711L10.4141 17H7V13.5858L15.2929 3.29289ZM16 5.41421L8 13.4142V16H10.5858L18.5858 8.00005L16 5.41421Z"></path>
