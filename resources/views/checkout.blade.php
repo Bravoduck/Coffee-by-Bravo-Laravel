@@ -60,11 +60,26 @@
                                 <div class="cart-item-details-column">
                                     <h3>{{ $details['name'] }}</h3>
                                     @php
-                                        $defaultOptions = ['Regular Ice', 'Normal Sweet', 'Normal Ice', 'Normal Shot', 'Milk'];
-                                        $customizations = $details['customizations'] ?? [];
-                                        $displayCustomizations = array_diff($customizations, $defaultOptions);
-                                    @endphp
-                                    <p>{{ !empty($displayCustomizations) ? implode(', ', $displayCustomizations) : 'Regular' }}</p>
+    // 1. Daftar urutan yang benar sesuai halaman detail
+    $optionOrder = [
+        'Large Ice', 'Less Sweet', 'Less Ice', 'More Ice', '+1 Shot', '+2 Shot', 'Oat Milk', 'Almond Milk', 'Aren', 
+        'Hazelnut', 'Pandan', 'Manuka', 'Vanilla', 'Salted Caramel', 
+        'Caramel Sauce', 'Crumble', 'Milo Powder', 'Oreo Crumbs'
+    ];
+    
+    $customizations = $details['customizations'] ?? [];
+    $sortedCustomizations = [];
+
+    // 2. Loop melalui urutan yang benar
+    foreach ($optionOrder as $option) {
+        // 3. Jika kustomisasi ada di dalam pesanan, tambahkan ke array yang sudah urut
+        if (in_array($option, $customizations)) {
+            $sortedCustomizations[] = $option;
+        }
+    }
+@endphp
+
+<p>{{ !empty($sortedCustomizations) ? implode(', ', $sortedCustomizations) : 'Regular' }}</p>
                                     <span class="cart-item-price-main">Rp {{ number_format($itemPrice * $details['quantity'], 0, ',', '.') }}</span>
                                 </div>
                                 <div class="cart-item-media-column">

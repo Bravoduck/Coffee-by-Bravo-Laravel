@@ -33,8 +33,11 @@ document.addEventListener('DOMContentLoaded', function () {
             this.ui.cartItemsContainer.addEventListener('click', (event) => {
                 const increaseBtn = event.target.closest('.increase-item-qty');
                 const decreaseBtn = event.target.closest('.decrease-item-qty');
+                const editBtn = event.target.closest('.edit-item-btn');
+
                 if (increaseBtn) this.handleQuantityChange(increaseBtn, 1);
                 if (decreaseBtn) this.handleQuantityChange(decreaseBtn, -1);
+                if (editBtn) this.handleEditItem(editBtn);
             });
 
             if (this.ui.confirmDeleteModal) {
@@ -47,6 +50,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.ui.confirmDeleteModal.addEventListener('click', (e) => {
                     if (e.target === this.ui.confirmDeleteModal) this.hideDeleteModal();
                 });
+            }
+        },
+
+        handleEditItem(button) {
+            const cartItem = button.closest('.cart-item');
+            const itemId = cartItem.dataset.id;
+            
+            // Ambil data lengkap item dari variabel global yang sudah kita siapkan
+            const itemToEdit = window.cartItems[itemId];
+
+            if (itemToEdit) {
+                // Simpan data item yang akan diedit ke 'sessionStorage'
+                // Ini seperti menitipkan data sementara ke browser
+                sessionStorage.setItem('editMode', 'true');
+                sessionStorage.setItem('itemToEdit', JSON.stringify(itemToEdit));
+
+                // Arahkan pengguna ke halaman detail produk yang sesuai
+                window.location.href = `/product/${itemToEdit.slug}`;
+            } else {
+                alert('Terjadi kesalahan: Data item tidak ditemukan.');
             }
         },
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
 
 class CartController extends Controller
 {
@@ -12,24 +13,26 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cart = session('cart', []);
-        $selectedStore = session()->get('selected_store', null); // <-- TAMBAHKAN INI
-
+        $cart = session()->get('cart', []);
+        $selectedStore = session()->get('selected_store', null);
         return view('checkout', [
             'cart' => $cart,
-            'selectedStore' => $selectedStore // <-- TAMBAHKAN INI
+            'selectedStore' => $selectedStore
         ]);
     }
 
     /**
-     * Menambahkan item baru ke keranjang.
+     * Menambahkan atau MENGUPDATE item di keranjang.
+     * Logika ini sekarang bisa membedakan antara item baru dan item yang diedit.
      */
     public function add(Request $request)
     {
+        // Validasi data, termasuk 'old_cart_item_id' yang opsional
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
-            'customizations' => 'nullable|array'
+            'customizations' => 'nullable|array',
+            'old_cart_item_id' => 'nullable|string' 
         ]);
 
         $product = Product::find($request->product_id);
@@ -37,13 +40,24 @@ class CartController extends Controller
         $customizations = $request->input('customizations', []);
         sort($customizations);
 
-        // ID unik berdasarkan produk & kustomisasinya
-        $cartItemId = $product->id . '-' . md5(implode('-', $customizations));
+        // ▼▼▼ LOGIKA PENTING UNTUK MODE EDIT ▼▼▼
+        // Jika ada ID item lama yang dikirim (artinya mode edit),
+        // hapus dulu item lama tersebut dari keranjang.
+        if ($request->has('old_cart_item_id') && isset($cart[$request->old_cart_item_id])) {
+            unset($cart[$request->old_cart_item_id]);
+        }
 
-        if (isset($cart[$cartItemId])) {
-            $cart[$cartItemId]['quantity'] += $request->quantity;
+        // Buat ID baru berdasarkan kustomisasi yang baru dipilih
+        $newCartItemId = $product->id . '-' . md5(implode('-', $customizations));
+
+        // Cek apakah item dengan kustomisasi BARU ini sudah ada di keranjang
+        if (isset($cart[$newCartItemId])) {
+            // Jika sudah ada, cukup tambahkan kuantitasnya
+            $cart[$newCartItemId]['quantity'] += $request->quantity;
         } else {
-            $cart[$cartItemId] = [
+            // Jika belum ada, tambahkan sebagai item yang benar-benar baru
+            $cart[$newCartItemId] = [
+                "id" => $newCartItemId, // Simpan ID unik ini
                 "product_id" => $product->id,
                 "name" => $product->name,
                 "slug" => $product->slug,
@@ -56,11 +70,8 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        $footerHtml = view('partials.cart-footer', ['cart' => $cart])->render();
-        return response()->json([
-            'message'     => 'Produk berhasil ditambahkan!',
-            'footer_html' => $footerHtml
-        ]);
+        // Karena aksi ini hanya dari halaman detail, kita bisa langsung redirect kembali ke checkout
+        return redirect()->route('checkout.index')->with('status', 'Keranjang berhasil diperbarui!');
     }
 
     /**
@@ -70,15 +81,13 @@ class CartController extends Controller
     {
         $request->validate(['id' => 'required']);
         $cart = session()->get('cart', []);
-
         if (isset($cart[$request->id])) {
             unset($cart[$request->id]);
             session()->put('cart', $cart);
         }
-
         return response()->json([
             'message' => 'Item berhasil dihapus.',
-            'cart' => session('cart', []) // Kirim kembali data cart terbaru
+            'cart' => session('cart', [])
         ]);
     }
 
@@ -91,17 +100,14 @@ class CartController extends Controller
             'id' => 'required',
             'quantity' => 'required|integer|min:1'
         ]);
-
         $cart = session()->get('cart', []);
-
         if (isset($cart[$request->id])) {
             $cart[$request->id]['quantity'] = $request->quantity;
             session()->put('cart', $cart);
         }
-        
         return response()->json([
             'message' => 'Kuantitas berhasil diperbarui.',
-            'cart' => session('cart', []) // Kirim kembali data cart terbaru
+            'cart' => session('cart', [])
         ]);
     }
 }
