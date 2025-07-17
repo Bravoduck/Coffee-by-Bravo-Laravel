@@ -13,7 +13,7 @@
 @endphp
 
 @if ($totalItems > 0)
-    <a href="#" class="cart-footer">
+    <a href="{{ route('checkout.index') }}" class="cart-footer">
         <div class="cart-summary">
             <span>Cek Keranjang ({{ $totalItems }} produk)</span>
         </div>

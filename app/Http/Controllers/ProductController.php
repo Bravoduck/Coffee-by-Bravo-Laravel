@@ -4,35 +4,39 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
-use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     /**
-     * Menampilkan halaman utama dengan semua produk.
+     * Menampilkan halaman utama dengan semua produk yang dikelompokkan per kategori.
      */
     public function index()
     {
-        $categories = Category::with('products')->get();
-        $cart = session()->get('cart', []);
-        $selectedStore = session()->get('selected_store', null);
+        // Ambil semua kategori yang memiliki produk induk (bukan varian),
+        // dan muat juga produk-produknya.
+        $categories = Category::whereHas('products', function ($query) {
+            $query->whereNull('parent_id');
+        })->with(['products' => function ($query) {
+            $query->whereNull('parent_id');
+        }])->get();
 
         return view('index', [
             'categories' => $categories,
-            'cart' => $cart,
-            'selectedStore' => $selectedStore
-            
+            'selectedStore' => session()->get('selected_store', null)
         ]);
     }
 
     /**
-     * Menampilkan halaman detail untuk satu produk.
-     * INI ADALAH METHOD YANG HILANG.
+     * Menampilkan halaman detail produk yang dinamis.
      */
     public function show(Product $product)
     {
-        // Laravel akan otomatis menemukan produk berdasarkan slug di URL
-        // Lalu kita kirim data produk tersebut ke view 'product-detail'
+        if ($product->parent_id) {
+            $product = $product->parent;
+        }
+        
+        $product->load('variants.optionGroups.options', 'optionGroups.options');
+
         return view('product-detail', [
             'product' => $product
         ]);

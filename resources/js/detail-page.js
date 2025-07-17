@@ -7,15 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemToEdit = isEditMode ? JSON.parse(sessionStorage.getItem('itemToEdit')) : null;
     const backBtn = document.querySelector('.detail-header .back-btn');
     const basePrice = parseInt(detailMain.dataset.basePrice, 10);
-    const productId = document.getElementById('product-detail-name').dataset.productId;
     const form = document.getElementById('options-form');
     const quantityElement = document.getElementById('quantity');
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     const toastNotification = document.getElementById('toast-notification');
     const toastMessage = document.getElementById('toast-message');
+    const variantButtons = document.querySelectorAll('.variant-btn');
+    const productIdInput = document.getElementById('product_id_input');
     let toastTimer;
 
-    // === Logika Tombol Kembali ===
+    // === Logika Tombol Kembali (Dari Kode Anda) ===
     if (backBtn) {
         backBtn.href = isEditMode ? '/checkout' : '/';
         backBtn.addEventListener('click', (e) => {
@@ -28,46 +29,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === FUNGSI-FUNGSI ===
+    // === FUNGSI-FUNGSI LENGKAP ===
 
     function showToast(message) {
         clearTimeout(toastTimer);
-        toastMessage.textContent = message;
-        toastNotification.className = 'toast-notification error show';
-        toastTimer = setTimeout(() => {
-            toastNotification.classList.remove('show');
-        }, 3000);
+        if (toastMessage && toastNotification) {
+            toastMessage.textContent = message;
+            toastNotification.className = 'toast-notification error show';
+            toastTimer = setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 3000);
+        }
     }
 
     function setupCheckboxLimits() {
-        const toppingCheckboxes = document.querySelectorAll('#topping-group input[type="checkbox"]');
-        toppingCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                const checkedCount = document.querySelectorAll('#topping-group input[type="checkbox"]:checked').length;
-                if (checkedCount > 2) {
-                    showToast('Maksimal 2 topping yang bisa dipilih.');
-                    e.target.checked = false;
-                    calculateTotalPrice();
+        const toppingGroup = document.getElementById('option-group-7');
+        if (toppingGroup) {
+            toppingGroup.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    const checkedCount = toppingGroup.querySelectorAll('input[type="checkbox"]:checked').length;
+                    if (checkedCount > 2) {
+                        showToast('Maksimal 2 topping yang bisa dipilih.');
+                        e.target.checked = false;
+                        calculateTotalPrice();
+                    }
                 }
             });
-        });
-
-        const syrupCheckboxes = document.querySelectorAll('#syrup-group input[type="checkbox"]');
-        syrupCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                // Jika checkbox yang baru diklik itu dicentang
-                if (e.target.checked) {
-                    // Loop semua checkbox syrup
-                    syrupCheckboxes.forEach(cb => {
-                        // Batalkan centang pada checkbox lain
-                        if (cb !== e.target) {
-                            cb.checked = false;
-                        }
+        }
+        
+        const syrupGroup = document.getElementById('option-group-6');
+        if(syrupGroup) {
+            syrupGroup.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox' && e.target.checked) {
+                    syrupGroup.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                        if (cb !== e.target) cb.checked = false;
                     });
-                    calculateTotalPrice(); // Hitung ulang harga setelah perubahan
                 }
             });
-        });
+        }
     }
 
     function populateFormForEdit() {
@@ -75,12 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
         quantityElement.textContent = itemToEdit.quantity;
         const allInputs = form.querySelectorAll('input[type="radio"], input[type="checkbox"]');
         allInputs.forEach(input => {
-            const label = input.closest('.option-item');
-            if (!label) return;
-            const nameSpan = label.querySelector('.option-name');
-            const clone = nameSpan.cloneNode(true);
-            if (clone.querySelector('.badge')) clone.querySelector('.badge').remove();
-            const optionText = clone.textContent.trim().replace(/👍/g, '').trim();
+            const nameSpan = input.closest('.option-item').querySelector('.option-name');
+            const optionText = nameSpan.textContent.trim().replace(/👍/g, '').trim();
             if (itemToEdit.customizations && itemToEdit.customizations.includes(optionText)) {
                 input.checked = true;
             }
@@ -89,64 +84,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calculateTotalPrice() {
         let optionsPrice = 0;
-        form.querySelectorAll('input:checked').forEach(option => {
+        const activeOptionsContainer = document.querySelector('.variant-options:not(.hidden)') || form;
+        
+        activeOptionsContainer.querySelectorAll('input:checked').forEach(option => {
             optionsPrice += parseInt(option.dataset.price, 10) || 0;
         });
+
         const quantity = parseInt(quantityElement.textContent, 10);
         const currentPrice = (basePrice + optionsPrice) * quantity;
         updateButtonPrice(currentPrice);
     }
 
     function updateButtonPrice(price) {
-        const formattedPrice = new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0
-        }).format(price);
-        const buttonText = isEditMode ? 'Update' : 'Tambah';
-        addToCartBtn.innerHTML = `${buttonText} • ${formattedPrice.replace('Rp', 'Rp ')}`;
+        const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
+        const buttonText = isEditMode ? 'Update Pesanan' : 'Tambah';
+        addToCartBtn.innerHTML = `<span>${buttonText}</span><span id="cart-btn-price">${formattedPrice.replace('Rp', 'Rp ')}</span>`;
     }
 
+    function switchVariantView(variantId) {
+        document.querySelectorAll('.variant-options').forEach(div => div.classList.add('hidden'));
+        const activeOptions = document.querySelector(`.variant-options[data-options-for="${variantId}"]`);
+        if (activeOptions) {
+            activeOptions.classList.remove('hidden');
+            if (productIdInput) productIdInput.value = variantId;
+        }
+        calculateTotalPrice();
+    }
+    
     function handleSubmit(event) {
         event.preventDefault();
-        const formElement = document.createElement('form');
-        formElement.method = 'POST';
-        formElement.action = '/cart/add';
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        formElement.appendChild(csrfInput);
-        const customizations = Array.from(form.querySelectorAll('input:checked')).map(opt => {
-            const nameSpan = opt.closest('.option-item').querySelector('.option-name');
-            const clone = nameSpan.cloneNode(true);
-            if (clone.querySelector('.badge')) clone.querySelector('.badge').remove();
-            return clone.textContent.trim().replace(/👍/g, '').trim();
-        });
-        const quantity = parseInt(quantityElement.textContent, 10);
-        formElement.innerHTML += `<input type="hidden" name="product_id" value="${productId}">`;
-        formElement.innerHTML += `<input type="hidden" name="quantity" value="${quantity}">`;
-        customizations.forEach(cust => {
-            formElement.innerHTML += `<input type="hidden" name="customizations[]" value="${cust}">`;
-        });
-        if (isEditMode && itemToEdit) {
-            formElement.innerHTML += `<input type="hidden" name="old_cart_item_id" value="${itemToEdit.id}">`;
+        const formElement = document.getElementById('options-form');
+        
+        const quantityInput = formElement.querySelector('input[name="quantity"]');
+        if (quantityInput) {
+            quantityInput.value = quantityElement.textContent;
         }
-        document.body.appendChild(formElement);
+
         addToCartBtn.disabled = true;
         addToCartBtn.textContent = 'Memproses...';
-        sessionStorage.removeItem('editMode');
-        sessionStorage.removeItem('itemToEdit');
+        
+        if (isEditMode) {
+            sessionStorage.removeItem('editMode');
+            sessionStorage.removeItem('itemToEdit');
+        }
+        
         formElement.submit();
     }
 
-    // === Inisialisasi Halaman ===
+    // === Inisialisasi Halaman & Event Listeners ===
     if (isEditMode) {
         populateFormForEdit();
     }
+    
+    variantButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            variantButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            const variantId = this.dataset.variantId;
+            switchVariantView(variantId);
+        });
+    });
+    
     calculateTotalPrice();
-    setupCheckboxLimits(); // Panggil validasi
-    form.addEventListener('input', calculateTotalPrice);
+    setupCheckboxLimits();
+    
+    form.addEventListener('change', calculateTotalPrice);
     addToCartBtn.addEventListener('click', handleSubmit);
     document.getElementById('increase-qty').addEventListener('click', () => {
         quantityElement.textContent = parseInt(quantityElement.textContent, 10) + 1;

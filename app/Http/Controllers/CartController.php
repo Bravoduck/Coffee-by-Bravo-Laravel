@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Option; // PENTING: Tambahkan ini untuk mengakses data harga opsi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 
@@ -23,54 +24,57 @@ class CartController extends Controller
 
     /**
      * Menambahkan atau MENGUPDATE item di keranjang.
-     * Logika ini sekarang bisa membedakan antara item baru dan item yang diedit.
+     * Logika ini sekarang bisa menghitung harga kustomisasi dan menangani mode edit.
      */
     public function add(Request $request)
     {
-        // Validasi data, termasuk 'old_cart_item_id' yang opsional
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
-            'customizations' => 'nullable|array',
-            'old_cart_item_id' => 'nullable|string' 
+            'customizations' => 'nullable|array'
         ]);
 
         $product = Product::find($request->product_id);
         $cart = session()->get('cart', []);
-        $customizations = $request->input('customizations', []);
-        sort($customizations);
 
-        // ▼▼▼ LOGIKA PENTING UNTUK MODE EDIT ▼▼▼
-        // Jika ada ID item lama yang dikirim (artinya mode edit),
-        // hapus dulu item lama tersebut dari keranjang.
+        $allCustomizations = [];
+        if ($request->has('customizations')) {
+            foreach ($request->customizations as $group) {
+                if (is_array($group)) {
+                    $allCustomizations = array_merge($allCustomizations, $group);
+                } else {
+                    $allCustomizations[] = $group;
+                }
+            }
+        }
+        sort($allCustomizations);
+
+        $optionsPrice = Option::whereIn('name', $allCustomizations)->sum('price');
+        $totalItemPrice = $product->price + $optionsPrice;
+
+        $newCartItemId = $product->id . '-' . md5(implode('-', $allCustomizations));
+
         if ($request->has('old_cart_item_id') && isset($cart[$request->old_cart_item_id])) {
             unset($cart[$request->old_cart_item_id]);
         }
 
-        // Buat ID baru berdasarkan kustomisasi yang baru dipilih
-        $newCartItemId = $product->id . '-' . md5(implode('-', $customizations));
-
-        // Cek apakah item dengan kustomisasi BARU ini sudah ada di keranjang
         if (isset($cart[$newCartItemId])) {
-            // Jika sudah ada, cukup tambahkan kuantitasnya
             $cart[$newCartItemId]['quantity'] += $request->quantity;
         } else {
-            // Jika belum ada, tambahkan sebagai item yang benar-benar baru
             $cart[$newCartItemId] = [
-                "id" => $newCartItemId, // Simpan ID unik ini
+                "id" => $newCartItemId,
                 "product_id" => $product->id,
                 "name" => $product->name,
                 "slug" => $product->slug,
-                "quantity" => $request->quantity,
-                "price" => $product->price,
+                "quantity" => (int)$request->quantity,
+                "price" => $totalItemPrice,
                 "image" => $product->image,
-                "customizations" => $customizations
+                "customizations" => $allCustomizations
             ];
         }
 
         session()->put('cart', $cart);
 
-        // Karena aksi ini hanya dari halaman detail, kita bisa langsung redirect kembali ke checkout
         return redirect()->route('checkout.index')->with('status', 'Keranjang berhasil diperbarui!');
     }
 

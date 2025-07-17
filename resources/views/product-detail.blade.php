@@ -12,127 +12,63 @@
     <main class="detail-main" data-base-price="{{ $product->price }}">
         <section class="product-summary-display">
             <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" id="product-detail-image">
-            <h2 id="product-detail-name" data-product-id="{{ $product->id }}">{{ $product->name }}</h2>
+            <h2 id="product-detail-name" data-product-id="{{ $product->parent_id ?? $product->id }}">{{ $product->name }}</h2>
             <p id="product-detail-description">{{ $product->description }}</p>
             <p id="product-detail-price">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
-            <div class="available-options">
-                <h3>Pilihan Tersedia</h3>
-                <button class="option-chip">Iced</button>
-            </div>
+            
+            {{-- Bagian untuk Tombol Varian (Iced/Hot) --}}
+            @if($product->variants->isNotEmpty())
+                <div class="available-options">
+                    <h3>Pilihan Tersedia</h3>
+                </div>
+                <div class="variant-selector">
+                    @foreach($product->variants as $index => $variant)
+                        <button type="button" class="option-chip variant-btn {{ $index == 0 ? 'active' : '' }}" data-variant-id="{{ $variant->id }}">
+                            {{ $variant->variant_name }}
+                        </button>
+                    @endforeach
+                </div>
+            @endif
         </section>
 
-        <form id="options-form" data-add-to-cart-url="{{ route('cart.add') }}">
-            {{-- ... Seluruh section form Anda dari Ukuran Cup sampai Topping ... --}}
-            <section class="option-group">
-                <div class="option-group-header">
-                    <h2>Ukuran Cup</h2>
-                    <p>Wajib, Pilih 1</p>
-                </div>
-                <div class="option-item"><label><span class="option-name">Regular Ice</span><input type="radio"
-                        name="cup-size" data-price="0" checked><span class="custom-radio"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Large Ice <span class="badge">👍 Banyak
-                                disukai</span></span><span class="option-price">+Rp 4.500</span><input type="radio"
-                        name="cup-size" data-price="4500"><span class="custom-radio"></span></label></div>
-            </section>
+        <form id="options-form" action="{{ route('cart.add') }}" method="POST">
+            @csrf
             
-            {{-- ...dan seterusnya untuk semua section form Anda... --}}
-            <section class="option-group">
-                <div class="option-group-header">
-                    <h2>Sweetness</h2>
-                    <p>Wajib, Pilih 1</p>
-                </div>
-                <div class="option-item"><label><span class="option-name">Normal Sweet</span><input type="radio"
-                        name="sweetness" data-price="0" checked><span class="custom-radio"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Less Sweet</span><input type="radio"
-                        name="sweetness" data-price="0"><span class="custom-radio"></span></label></div>
-            </section>
-            <section class="option-group">
-                <div class="option-group-header">
-                    <h2>Ice Cube</h2>
-                    <p>Wajib, Pilih 1</p>
-                </div>
-                <div class="option-item"><label><span class="option-name">Normal Ice</span><input type="radio"
-                        name="ice" data-price="0" checked><span class="custom-radio"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Less Ice</span><input type="radio"
-                        name="ice" data-price="0"><span class="custom-radio"></span></label></div>
-                <div class="option-item"><label><span class="option-name">More Ice</span><input type="radio"
-                        name="ice" data-price="0"><span class="custom-radio"></span></label></div>
-            </section>
-            <section class="option-group">
-                <div class="option-group-header">
-                    <h2>Espresso</h2>
-                    <p>Wajib, Pilih 1</p>
-                </div>
-                <div class="option-item"><label><span class="option-name">Normal Shot</span><input type="radio"
-                        name="espresso" data-price="0" checked><span class="custom-radio"></span></label></div>
-                <div class="option-item"><label><span class="option-name">+1 Shot 👍</span><span
-                        class="option-price">+Rp 4.500</span><input type="radio" name="espresso"
-                        data-price="4500"><span class="custom-radio"></span></label></div>
-                <div class="option-item"><label><span class="option-name">+2 Shot</span><span
-                        class="option-price">+Rp 9.000</span><input type="radio" name="espresso"
-                        data-price="9000"><span class="custom-radio"></span></label></div>
-            </section>
-            <section class="option-group">
-                <div class="option-group-header">
-                    <h2>Dairy</h2>
-                    <p>Wajib, Pilih 1</p>
-                </div>
-                <div class="option-item"><label><span class="option-name">Milk</span><input type="radio"
-                        name="dairy" data-price="0" checked><span class="custom-radio"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Oat Milk 👍</span><span
-                        class="option-price">+Rp 10.000</span><input type="radio" name="dairy"
-                        data-price="10000"><span class="custom-radio"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Almond Milk</span><span
-                        class="option-price">+Rp 10.000</span><input type="radio" name="dairy"
-                        data-price="10000"><span class="custom-radio"></span></label></div>
-            </section>
-            <section class="option-group" id="syrup-group">
-                <div class="option-group-header">
-                    <h2>Syrup</h2>
-                    <p>Opsional, Maks 1</p>
-                </div>
-                <div class="option-item"><label><span class="option-name">Aren 👍</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="syrup"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Hazelnut</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="syrup"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Pandan</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="syrup"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Manuka</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="syrup"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Vanilla</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="syrup"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Salted Caramel</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="syrup"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-            </section>
-            <section class="option-group" id="topping-group">
-                <div class="option-group-header">
-                    <h2>Topping</h2>
-                    <p>Opsional, Maks 2</p>
-                </div>
-                <div class="option-item"><label><span class="option-name">Caramel Sauce 👍</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="topping"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Crumble 👍</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="topping"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Milo Powder</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="topping"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-                <div class="option-item"><label><span class="option-name">Oreo Crumbs</span><span
-                        class="option-price">+Rp 4.500</span><input type="checkbox" name="topping"
-                        data-price="4500"><span class="custom-checkbox"></span></label></div>
-            </section>
+            {{-- Input ini akan diisi oleh JavaScript dengan ID varian/produk yang akan ditambahkan --}}
+            @if($product->variants->isNotEmpty())
+                <input type="hidden" name="product_id" id="product_id_input" value="{{ $product->variants->first()->id }}">
+            @else
+                <input type="hidden" name="product_id" id="product_id_input" value="{{ $product->id }}">
+            @endif
+            
+            {{-- Input untuk kuantitas --}}
+            <input type="hidden" name="quantity" id="quantity-input" value="1">
+
+            {{-- Jika produk memiliki varian, loop melalui varian --}}
+            @if($product->variants->isNotEmpty())
+                @foreach($product->variants as $index => $variant)
+                    <div class="variant-options {{ $index == 0 ? '' : 'hidden' }}" data-options-for="{{ $variant->id }}">
+                        @foreach ($variant->optionGroups as $group)
+                            @include('partials.option-group', ['group' => $group, 'variantName' => $variant->variant_name])
+                        @endforeach
+                    </div>
+                @endforeach
+            @else
+                {{-- Fallback untuk produk tanpa varian --}}
+                @foreach ($product->optionGroups as $group)
+                    @include('partials.option-group', ['group' => $group, 'variantName' => 'Iced'])
+                @endforeach
+            @endif
         </form>
     </main>
+
     <footer class="sticky-footer">
-        <div class="quantity-selector"><button id="decrease-qty">-</button><span id="quantity">1</span><button id="increase-qty">+</button></div>
-        <button id="add-to-cart-btn" class="add-to-cart-btn">
+        <div class="quantity-selector">
+            <button type="button" id="decrease-qty">-</button>
+            <span id="quantity">1</span>
+            <button type="button" id="increase-qty">+</button>
+        </div>
+        <button id="add-to-cart-btn" class="add-to-cart-btn" form="options-form">
             <span id="cart-btn-text">Tambah</span><span id="cart-btn-price"></span>
         </button>
     </footer>

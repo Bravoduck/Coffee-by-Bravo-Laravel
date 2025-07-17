@@ -11,8 +11,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Hapus komentar atau tambahkan baris ini
         $this->call([
+            OptionSeeder::class,
             ProductSeeder::class,
             StoreSeeder::class,
         ]);
