@@ -44,7 +44,9 @@
         "price": 15500,
         "description": "Paduan rasa dan aroma kopi Indonesia yang kuat bercampur dengan gula aren khas nusantara.",
         "image": "https://static.fore.coffee/product/Kopi%20dari%20Tani.jpg",
-        "option_groups": ["Ukuran Cup", "Sweetness", "Ice Cube", "Espresso", "Dairy", "Syrup", "Topping"]
+        "variants": [
+          { "name": "Iced", "option_groups": ["Ukuran Cup", "Sweetness", "Ice Cube", "Espresso", "Dairy", "Syrup", "Topping"] }
+        ]
       },
       {
         "name": "Butterscotch Sea Salt Latte",

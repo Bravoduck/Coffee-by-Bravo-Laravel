@@ -3,72 +3,87 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Option; // PENTING: Tambahkan ini untuk mengakses data harga opsi
+use App\Models\Option;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 
 class CartController extends Controller
 {
-    /**
-     * Menampilkan halaman checkout dengan data dari session.
-     */
     public function index()
     {
         $cart = session()->get('cart', []);
         $selectedStore = session()->get('selected_store', null);
+
+        $productIds = array_column($cart, 'product_id');
+        $products = Product::with('parent')->find($productIds);
+
+        // Buat pemetaan agar mudah diakses di JS
+        $cartItemsData = [];
+        foreach ($cart as $id => $details) {
+            $product = $products->find($details['product_id']);
+            if ($product) {
+                // Gunakan slug dari produk induk untuk link 'Edit'
+                $cartItemsData[$id] = [
+                    'id' => $id,
+                    'product_id' => $details['product_id'],
+                    'slug' => $product->parent->slug ?? $product->slug,
+                    'price' => $details['price'], // Harga per item sudah termasuk opsi
+                    'quantity' => $details['quantity'],
+                    'customizations' => $details['customizations'],
+                ];
+            }
+        }
+
         return view('checkout', [
             'cart' => $cart,
+            'cartItemsData' => $cartItemsData,
             'selectedStore' => $selectedStore
         ]);
     }
 
-    /**
-     * Menambahkan atau MENGUPDATE item di keranjang.
-     * Logika ini sekarang bisa menghitung harga kustomisasi dan menangani mode edit.
-     */
     public function add(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
-            'customizations' => 'nullable|array'
+            'customizations' => 'nullable|array',
+            'old_cart_item_id' => 'nullable|string'
         ]);
 
-        $product = Product::find($request->product_id);
+        $productVariant = Product::with('parent')->find($request->product_id);
         $cart = session()->get('cart', []);
 
         $allCustomizations = [];
         if ($request->has('customizations')) {
             foreach ($request->customizations as $group) {
-                if (is_array($group)) {
-                    $allCustomizations = array_merge($allCustomizations, $group);
-                } else {
-                    $allCustomizations[] = $group;
-                }
+                $allCustomizations = array_merge($allCustomizations, (array)$group);
             }
         }
-        sort($allCustomizations);
+
+        // HAPUS BARIS 'sort($allCustomizations);' DARI SINI
+        // Ini akan menjaga urutan sesuai pilihan pengguna
 
         $optionsPrice = Option::whereIn('name', $allCustomizations)->sum('price');
-        $totalItemPrice = $product->price + $optionsPrice;
+        $basePrice = $productVariant->parent->price ?? $productVariant->price;
+        $totalItemPrice = $basePrice + $optionsPrice;
 
-        $newCartItemId = $product->id . '-' . md5(implode('-', $allCustomizations));
-
-        if ($request->has('old_cart_item_id') && isset($cart[$request->old_cart_item_id])) {
+        if ($request->filled('old_cart_item_id') && isset($cart[$request->old_cart_item_id])) {
             unset($cart[$request->old_cart_item_id]);
         }
 
+        $newCartItemId = $productVariant->id . '-' . md5(implode('-', $allCustomizations));
+
         if (isset($cart[$newCartItemId])) {
-            $cart[$newCartItemId]['quantity'] += $request->quantity;
+            $cart[$newCartItemId]['quantity'] += (int)$request->quantity;
         } else {
             $cart[$newCartItemId] = [
                 "id" => $newCartItemId,
-                "product_id" => $product->id,
-                "name" => $product->name,
-                "slug" => $product->slug,
+                "product_id" => $productVariant->id,
+                "name" => $productVariant->parent->name ?? $productVariant->name,
+                "slug" => $productVariant->parent->slug ?? $productVariant->slug,
                 "quantity" => (int)$request->quantity,
                 "price" => $totalItemPrice,
-                "image" => $product->image,
+                "image" => $productVariant->image,
                 "customizations" => $allCustomizations
             ];
         }
@@ -78,9 +93,6 @@ class CartController extends Controller
         return redirect()->route('checkout.index')->with('status', 'Keranjang berhasil diperbarui!');
     }
 
-    /**
-     * Menghapus item dari keranjang.
-     */
     public function remove(Request $request)
     {
         $request->validate(['id' => 'required']);
@@ -95,9 +107,6 @@ class CartController extends Controller
         ]);
     }
 
-    /**
-     * Meng-update kuantitas item di keranjang.
-     */
     public function update(Request $request)
     {
         $request->validate([

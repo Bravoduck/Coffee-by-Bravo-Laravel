@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (this.ui.cartItemsContainer) {
                 this.registerEventListeners();
             }
-            // Daftarkan listener pembayaran meskipun keranjang kosong
             if (this.ui.processPaymentBtn) {
                 this.registerPaymentListener();
             }
@@ -54,16 +53,16 @@ document.addEventListener('DOMContentLoaded', function () {
         },
 
         handleEditItem(button) {
-            const cartItem = button.closest('.cart-item');
-            const itemId = cartItem.dataset.id;
+            const cartItemElement = button.closest('.cart-item');
+            const itemId = cartItemElement.dataset.id;
             
-            // Ambil data lengkap item dari variabel global yang sudah kita siapkan
+            // Ambil data lengkap item dari variabel global window.cartItems
             const itemToEdit = window.cartItems[itemId];
 
             if (itemToEdit) {
-                // Simpan data item yang akan diedit ke 'sessionStorage'
-                // Ini seperti menitipkan data sementara ke browser
+                // Simpan data item yang akan diedit ke sessionStorage
                 sessionStorage.setItem('editMode', 'true');
+                // PENTING: Kita simpan seluruh data item, termasuk ID uniknya
                 sessionStorage.setItem('itemToEdit', JSON.stringify(itemToEdit));
 
                 // Arahkan pengguna ke halaman detail produk yang sesuai
@@ -90,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         async sendRequest(url, data, actionText) {
             this.hideDeleteModal();
-
             try {
                 const response = await fetch(url, {
                     method: 'POST',

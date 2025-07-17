@@ -12,18 +12,17 @@
     <main class="detail-main" data-base-price="{{ $product->price }}">
         <section class="product-summary-display">
             <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" id="product-detail-image">
-            <h2 id="product-detail-name" data-product-id="{{ $product->parent_id ?? $product->id }}">{{ $product->name }}</h2>
+            <h2 id="product-detail-name" data-product-id="{{ $product->id }}">{{ $product->name }}</h2>
             <p id="product-detail-description">{{ $product->description }}</p>
             <p id="product-detail-price">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
             
-            {{-- Bagian untuk Tombol Varian (Iced/Hot) --}}
             @if($product->variants->isNotEmpty())
                 <div class="available-options">
                     <h3>Pilihan Tersedia</h3>
                 </div>
                 <div class="variant-selector">
                     @foreach($product->variants as $index => $variant)
-                        <button type="button" class="option-chip variant-btn {{ $index == 0 ? 'active' : '' }}" data-variant-id="{{ $variant->id }}">
+                        <button type="button" class="option-chip variant-btn {{ $index == 0 ? 'active' : '' }}" data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->variant_name }}">
                             {{ $variant->variant_name }}
                         </button>
                     @endforeach
@@ -34,17 +33,14 @@
         <form id="options-form" action="{{ route('cart.add') }}" method="POST">
             @csrf
             
-            {{-- Input ini akan diisi oleh JavaScript dengan ID varian/produk yang akan ditambahkan --}}
             @if($product->variants->isNotEmpty())
                 <input type="hidden" name="product_id" id="product_id_input" value="{{ $product->variants->first()->id }}">
             @else
                 <input type="hidden" name="product_id" id="product_id_input" value="{{ $product->id }}">
             @endif
             
-            {{-- Input untuk kuantitas --}}
             <input type="hidden" name="quantity" id="quantity-input" value="1">
 
-            {{-- Jika produk memiliki varian, loop melalui varian --}}
             @if($product->variants->isNotEmpty())
                 @foreach($product->variants as $index => $variant)
                     <div class="variant-options {{ $index == 0 ? '' : 'hidden' }}" data-options-for="{{ $variant->id }}">
@@ -54,7 +50,6 @@
                     </div>
                 @endforeach
             @else
-                {{-- Fallback untuk produk tanpa varian --}}
                 @foreach ($product->optionGroups as $group)
                     @include('partials.option-group', ['group' => $group, 'variantName' => 'Iced'])
                 @endforeach

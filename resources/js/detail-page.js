@@ -12,11 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     const toastNotification = document.getElementById('toast-notification');
     const toastMessage = document.getElementById('toast-message');
-    const variantButtons = document.querySelectorAll('.variant-btn');
-    const productIdInput = document.getElementById('product_id_input');
+    const productId = document.getElementById('product-detail-name').dataset.productId;
     let toastTimer;
 
-    // === Logika Tombol Kembali (Dari Kode Anda) ===
+    // === Logika Tombol Kembali ===
     if (backBtn) {
         backBtn.href = isEditMode ? '/checkout' : '/';
         backBtn.addEventListener('click', (e) => {
@@ -29,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === FUNGSI-FUNGSI LENGKAP ===
+    // === FUNGSI-FUNGSI ===
 
     function showToast(message) {
         clearTimeout(toastTimer);
@@ -58,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const syrupGroup = document.getElementById('option-group-6');
-        if(syrupGroup) {
+        if (syrupGroup) {
             syrupGroup.addEventListener('change', (e) => {
                 if (e.target.type === 'checkbox' && e.target.checked) {
                     syrupGroup.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -84,12 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calculateTotalPrice() {
         let optionsPrice = 0;
-        const activeOptionsContainer = document.querySelector('.variant-options:not(.hidden)') || form;
-        
-        activeOptionsContainer.querySelectorAll('input:checked').forEach(option => {
+        form.querySelectorAll('input:checked').forEach(option => {
             optionsPrice += parseInt(option.dataset.price, 10) || 0;
         });
-
         const quantity = parseInt(quantityElement.textContent, 10);
         const currentPrice = (basePrice + optionsPrice) * quantity;
         updateButtonPrice(currentPrice);
@@ -97,20 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateButtonPrice(price) {
         const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
-        const buttonText = isEditMode ? 'Update Pesanan' : 'Tambah';
-        addToCartBtn.innerHTML = `<span>${buttonText}</span><span id="cart-btn-price">${formattedPrice.replace('Rp', 'Rp ')}</span>`;
+        const buttonText = isEditMode ? 'Update' : 'Tambah';
+        addToCartBtn.textContent = `${buttonText} • ${formattedPrice.replace('Rp', 'Rp ')}`;
     }
 
-    function switchVariantView(variantId) {
-        document.querySelectorAll('.variant-options').forEach(div => div.classList.add('hidden'));
-        const activeOptions = document.querySelector(`.variant-options[data-options-for="${variantId}"]`);
-        if (activeOptions) {
-            activeOptions.classList.remove('hidden');
-            if (productIdInput) productIdInput.value = variantId;
-        }
-        calculateTotalPrice();
-    }
-    
     function handleSubmit(event) {
         event.preventDefault();
         const formElement = document.getElementById('options-form');
@@ -120,40 +106,41 @@ document.addEventListener('DOMContentLoaded', () => {
             quantityInput.value = quantityElement.textContent;
         }
 
+        if (isEditMode && itemToEdit) {
+            const oldItemIdInput = document.createElement('input');
+            oldItemIdInput.type = 'hidden';
+            oldItemIdInput.name = 'old_cart_item_id';
+            oldItemIdInput.value = itemToEdit.id;
+            formElement.appendChild(oldItemIdInput);
+        }
+
         addToCartBtn.disabled = true;
         addToCartBtn.textContent = 'Memproses...';
         
-        if (isEditMode) {
-            sessionStorage.removeItem('editMode');
-            sessionStorage.removeItem('itemToEdit');
-        }
+        sessionStorage.removeItem('editMode');
+        sessionStorage.removeItem('itemToEdit');
         
         formElement.submit();
     }
 
     // === Inisialisasi Halaman & Event Listeners ===
+
     if (isEditMode) {
         populateFormForEdit();
     }
-    
-    variantButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            variantButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            const variantId = this.dataset.variantId;
-            switchVariantView(variantId);
-        });
-    });
-    
+
+    // Hitung harga SETELAH form mungkin diisi oleh mode edit
     calculateTotalPrice();
     setupCheckboxLimits();
     
     form.addEventListener('change', calculateTotalPrice);
     addToCartBtn.addEventListener('click', handleSubmit);
+
     document.getElementById('increase-qty').addEventListener('click', () => {
         quantityElement.textContent = parseInt(quantityElement.textContent, 10) + 1;
         calculateTotalPrice();
     });
+    
     document.getElementById('decrease-qty').addEventListener('click', () => {
         let qty = parseInt(quantityElement.textContent, 10);
         if (qty > 1) {

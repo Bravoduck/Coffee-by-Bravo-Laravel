@@ -10,19 +10,16 @@
         @endif
     </div>
 
-    {{-- ▼▼▼ KITA GUNAKAN LOGIKA PENANDA BARU YANG LEBIH PINTAR ▼▼▼ --}}
     @php
         $isFirstVisibleOption = true;
     @endphp
 
     @foreach ($group->options as $option)
         @php
-            // Logika untuk hanya menampilkan opsi yang relevan (Iced/Hot)
             $isIcedOption = Str::contains($option->name, 'Ice');
             $isHotOption = Str::contains($option->name, 'Hot');
             $isGeneralOption = !$isIcedOption && !$isHotOption;
 
-            // Tentukan apakah opsi ini harus ditampilkan berdasarkan varian yang aktif
             $shouldShow = ($variantName == 'Iced' && ($isIcedOption || $isGeneralOption)) ||
                           ($variantName == 'Hot' && ($isHotOption || $isGeneralOption));
         @endphp
@@ -39,7 +36,6 @@
                         name="customizations[{{ $group->id }}]{{ $group->type === 'checkbox' ? '[]' : '' }}"
                         value="{{ $option->name }}"
                         data-price="{{ $option->price }}"
-                        {{-- Logika baru: Jika ini opsi pertama YANG TERLIHAT & grupnya wajib, maka 'checked' --}}
                         @if($isFirstVisibleOption && $group->is_required)
                             checked
                             @php $isFirstVisibleOption = false; @endphp
