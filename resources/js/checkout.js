@@ -6,10 +6,15 @@ document.addEventListener('DOMContentLoaded', function () {
             confirmDeleteModal: document.getElementById('confirm-delete-modal'),
             confirmDeleteBtn: document.getElementById('confirm-delete-btn'),
             cancelDeleteBtn: document.getElementById('cancel-delete-btn'),
-            processPaymentBtn: document.getElementById('process-payment-btn')
+            processPaymentBtn: document.getElementById('process-payment-btn'),
+            customerNameInput: document.getElementById('customer_name'),
+            locationNameDisplay: document.querySelector('.store-name-display'),
+            toastNotification: document.getElementById('toast-notification'),
+            toastMessage: document.getElementById('toast-message')
         },
         state: {
-            itemIdToDelete: null
+            itemIdToDelete: null,
+            toastTimer: null
         },
 
         init() {
@@ -21,9 +26,33 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
 
+        showToast(message) {
+            clearTimeout(this.state.toastTimer);
+            if (this.ui.toastMessage && this.ui.toastNotification) {
+                this.ui.toastMessage.textContent = message;
+                this.ui.toastNotification.className = 'toast-notification error show';
+                this.state.toastTimer = setTimeout(() => {
+                    this.ui.toastNotification.classList.remove('show');
+                }, 3000);
+            }
+        },
+
         registerPaymentListener() {
             this.ui.processPaymentBtn.addEventListener('click', (event) => {
                 event.preventDefault();
+                
+                const customerName = this.ui.customerNameInput.value.trim();
+                const locationName = this.ui.locationNameDisplay.textContent.trim();
+
+                if (locationName === 'Pilih Lokasi Pickup') {
+                    this.showToast('Lokasi pick up wajib dipilih.');
+                    return;
+                }
+                if (!customerName) {
+                    this.showToast('Nama pemesan wajib diisi.');
+                    return;
+                }
+
                 this.processPayment(event.currentTarget);
             });
         },
@@ -55,17 +84,11 @@ document.addEventListener('DOMContentLoaded', function () {
         handleEditItem(button) {
             const cartItemElement = button.closest('.cart-item');
             const itemId = cartItemElement.dataset.id;
-            
-            // Ambil data lengkap item dari variabel global window.cartItems
             const itemToEdit = window.cartItems[itemId];
 
             if (itemToEdit) {
-                // Simpan data item yang akan diedit ke sessionStorage
                 sessionStorage.setItem('editMode', 'true');
-                // PENTING: Kita simpan seluruh data item, termasuk ID uniknya
                 sessionStorage.setItem('itemToEdit', JSON.stringify(itemToEdit));
-
-                // Arahkan pengguna ke halaman detail produk yang sesuai
                 window.location.href = `/product/${itemToEdit.slug}`;
             } else {
                 alert('Terjadi kesalahan: Data item tidak ditemukan.');
@@ -105,47 +128,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
         async processPayment(button) {
             button.textContent = 'Memproses...';
-            button.style.pointerEvents = 'none';
             button.disabled = true;
 
             try {
                 const response = await fetch('/checkout/process', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.ui.csrfToken, 'Accept': 'application/json' }
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.ui.csrfToken, 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        customer_name: this.ui.customerNameInput.value.trim()
+                    })
                 });
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error || 'Gagal memproses pesanan.');
 
                 window.snap.pay(result.snap_token, {
-                    onSuccess: function(res){
-                        alert("Pembayaran berhasil!"); window.location.href = '/';
+                    onSuccess: (res) => {
+                        window.location.href = '/';
                     },
-                    onPending: function(res){
-                        alert("Menunggu pembayaran Anda!"); window.location.href = '/';
+                    onPending: (res) => {
+                        window.location.href = '/';
                     },
-                    onError: function(res){
-                        alert("Pembayaran gagal!");
-                        button.textContent = 'Lanjutkan';
-                        button.style.pointerEvents = 'auto';
+                    onError: (res) => {
+                        button.textContent = 'Bayar';
                         button.disabled = false;
                     },
-                    onClose: function(){
-                        button.textContent = 'Lanjutkan';
-                        button.style.pointerEvents = 'auto';
+                    onClose: () => {
+                        button.textContent = 'Bayar';
                         button.disabled = false;
                     }
                 });
             } catch (error) {
                 alert(error.message);
-                button.textContent = 'Lanjutkan';
-                button.style.pointerEvents = 'auto';
+                button.textContent = 'Bayar';
                 button.disabled = false;
             }
         },
 
-        /**
-         * Memperbarui semua elemen di halaman secara dinamis.
-         */
         updateUI(cart) {
             let grandTotal = 0;
             const allItemIdsInCart = Object.keys(cart);
@@ -154,17 +172,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 const itemId = itemElement.dataset.id;
                 if (allItemIdsInCart.includes(itemId)) {
                     const itemData = cart[itemId];
-                    const basePrice = window.cartItems[itemId].price;
-                    const subtotal = basePrice * itemData.quantity;
+                    const subtotal = itemData.price * itemData.quantity;
                     grandTotal += subtotal;
 
                     itemElement.querySelector('.quantity-selector span').textContent = itemData.quantity;
                     itemElement.querySelector('.cart-item-price-main').textContent = `Rp ${new Intl.NumberFormat('id-ID').format(subtotal)}`;
 
                     const decreaseBtn = itemElement.querySelector('.decrease-item-qty');
-                    decreaseBtn.innerHTML = (itemData.quantity > 1) ?
-                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5 11V13H19V11H5Z"></path></svg>' :
-                        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8ZM9 11H11V17H9V11ZM13 11H15V17H13V11ZM9 4V6H15V4H9Z"></path></svg>`;
+                    decreaseBtn.innerHTML = (itemData.quantity > 1) ? '-' : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8Z"></path></svg>`;
                 } else {
                     itemElement.remove();
                 }
@@ -177,29 +192,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (allItemIdsInCart.length === 0) {
                 document.getElementById('checkout-order-details').innerHTML = `
-                <section>
-                    <div class="section-header">
-                        <h2>Detail Pesanan</h2>
-                        <a href="/" class="add-more-btn">Tambah</a>
-                    </div>
-                    <div class="empty-cart-msg" style="padding: 20px 0;">
-                        <p>Keranjang Anda sekarang kosong.</p>
-                    </div>
-                </section>
+                    <section>
+                        <div class="section-header">
+                            <h2>Detail Pesanan</h2>
+                            <a href="/" class="add-more-btn">Tambah</a>
+                        </div>
+                        <div class="empty-cart-msg" style="padding: 20px 0;">
+                            <p>Keranjang Anda sekarang kosong.</p>
+                        </div>
+                    </section>
                 `;
-                document.querySelector('.sticky-footer.checkout-footer') ?.remove();
+                document.querySelector('.sticky-footer.checkout-footer')?.remove();
             }
         },
 
-        /**
-         * Menyembunyikan modal dan mereset state.
-         */
         hideDeleteModal() {
             this.ui.confirmDeleteModal.classList.remove('show');
             this.state.itemIdToDelete = null;
         }
     };
 
-    // Jalankan aplikasi
     CheckoutPage.init();
 });

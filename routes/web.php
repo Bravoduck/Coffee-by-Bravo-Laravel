@@ -28,3 +28,6 @@ Route::get('/stores', [StoreController::class, 'index'])->name('stores.index');
 
 // Route untuk memproses pemilihan store
 Route::get('/stores/select/{store}', [StoreController::class, 'select'])->name('stores.select');
+
+// Route untuk menerima notifikasi pembayaran dari Midtrans (Webhook)
+Route::post('/midtrans/notification', [OrderController::class, 'webhook'])->name('midtrans.notification');
